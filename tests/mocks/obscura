@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "${1:-}" = "--version" ]; then
+  echo "obscura mock 0.0.0"
+  exit 0
+fi
+
+cmd="${1:-}"
+if [ "$cmd" != "fetch" ]; then
+  echo "mock obscura only supports fetch" >&2
+  exit 2
+fi
+shift
+url="${1:-}"
+shift || true
+
+stealth=0
+dump="text"
+out=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --stealth)
+      stealth=1
+      ;;
+    --dump)
+      dump="$2"
+      shift
+      ;;
+    --output)
+      out="$2"
+      shift
+      ;;
+  esac
+  shift
+done
+
+if [ "$stealth" -ne 1 ]; then
+  echo "mock obscura requires --stealth" >&2
+  exit 7
+fi
+if [ -z "$out" ]; then
+  echo "mock obscura requires --output" >&2
+  exit 2
+fi
+
+mkdir -p "$(dirname "$out")"
+printf "stealth %s capture for %s\n" "$dump" "$url" > "$out"
+

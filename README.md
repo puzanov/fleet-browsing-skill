@@ -68,14 +68,42 @@ The helper writes files such as:
 - `commands.log`
 - `obscura-stealth.md` and `obscura-stealth.html` when fallback was needed
 
-`ensure-agent-browser.sh` and `ensure-obscura.sh` first look for existing
-binaries, then download supported release assets when needed. Their cache roots
-can be overridden with `ENJI_AGENT_BROWSER_HOME` and `ENJI_OBSCURA_HOME`.
+`ensure-agent-browser.sh` and `ensure-obscura.sh` first look for explicit binary
+paths via `ENJI_AGENT_BROWSER_BIN` and `ENJI_OBSCURA_BIN`, then use installed
+`agent-browser`/`obscura` binaries on `PATH`, then use their per-user cache.
+When downloading is needed, the scripts fetch pinned release assets and verify
+their SHA256 before executing them.
+
+Pinned defaults:
+
+- `agent-browser`: `vercel-labs/agent-browser` `v0.27.1`
+- `obscura`: `h4ckf0r0day/obscura` `v0.1.7`
+
+The default cache roots are under
+`${XDG_CACHE_HOME:-$HOME/.cache}/enji-fleet-browser/` and are created with
+private permissions. Override them with `ENJI_AGENT_BROWSER_HOME` and
+`ENJI_OBSCURA_HOME` when an isolated cache is needed.
+
+## Run Offline Tests
+
+Offline tests use mocked browser binaries and do not require agent CLIs, network
+access, or site availability:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_*.py'
+```
+
+The same command can be run through `uv`:
+
+```bash
+uv run python -m unittest discover -s tests -p 'test_*.py'
+```
 
 ## Run Live Tests
 
-The test runner launches fresh agents and validates generated artifacts instead
-of trusting only the agent's final prose.
+Live tests launch fresh agents and validate generated artifacts instead of
+trusting only the agent's final prose. They require local agent CLIs, working
+auth/config for those CLIs, network access, and current target-site behavior.
 
 ```bash
 uv run tests/run_agent_tests.py --agents codex,kimi,opencode --live
@@ -102,3 +130,6 @@ Obscura `fetch`, `scrape`, or `download` command in `commands.log` includes
 Agent binaries can be overridden with `CODEX_BIN`, `KIMI_BIN`, and
 `OPENCODE_BIN`.
 
+## License
+
+MIT. See [LICENSE](LICENSE).

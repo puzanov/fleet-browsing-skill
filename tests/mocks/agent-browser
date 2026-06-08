@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "${1:-}" = "--version" ]; then
+  echo "agent-browser mock 0.0.0"
+  exit 0
+fi
+
+if [ "${1:-}" != "--session" ] || [ "$#" -lt 3 ]; then
+  echo "mock agent-browser expects --session <name> <command>" >&2
+  exit 2
+fi
+
+session="$2"
+shift 2
+cmd="$1"
+shift
+
+state_dir="${MOCK_AGENT_BROWSER_STATE_DIR:-/tmp/enji-mock-agent-browser}"
+mkdir -p "$state_dir"
+url_file="$state_dir/$session.url"
+
+current_url() {
+  cat "$url_file"
+}
+
+is_blocked_url() {
+  case "$(current_url)" in
+    *blocked.test*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+case "$cmd" in
+  open)
+    printf "%s\n" "$1" > "$url_file"
+    ;;
+  wait)
+    ;;
+  get)
+    kind="${1:-}"
+    case "$kind" in
+      title)
+        if is_blocked_url; then
+          echo "Just a moment..."
+        else
+          echo "Enji Mock Page"
+        fi
+        ;;
+      url)
+        current_url
+        ;;
+      text)
+        if is_blocked_url; then
+          echo "Cloudflare security verification"
+        else
+          echo "Enji mock body"
+        fi
+        ;;
+      html)
+        if is_blocked_url; then
+          echo "<body>Cloudflare security verification</body>"
+        else
+          echo "<body>Enji mock body</body>"
+        fi
+        ;;
+      *)
+        echo "unsupported get kind: $kind" >&2
+        exit 2
+        ;;
+    esac
+    ;;
+  snapshot)
+    if is_blocked_url; then
+      echo "Snapshot: Cloudflare security verification"
+    else
+      echo "Snapshot: Enji mock body"
+    fi
+    ;;
+  screenshot)
+    out="${*: -1}"
+    mkdir -p "$(dirname "$out")"
+    printf "mock png\n" > "$out"
+    ;;
+  close)
+    rm -f "$url_file"
+    ;;
+  *)
+    echo "unsupported command: $cmd" >&2
+    exit 2
+    ;;
+esac
+

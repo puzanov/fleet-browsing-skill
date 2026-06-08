@@ -3,7 +3,19 @@
 This directory contains live regression prompts and a Python runner for the
 `enji-fleet-browser` skill.
 
-Run all supported agents:
+Run deterministic offline tests first:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_*.py'
+```
+
+or with `uv`:
+
+```bash
+uv run python -m unittest discover -s tests -p 'test_*.py'
+```
+
+Run all supported live agents:
 
 ```bash
 uv run tests/run_agent_tests.py --agents codex,kimi,opencode --live
@@ -15,8 +27,10 @@ Run one agent:
 uv run tests/run_agent_tests.py --agents codex --live
 ```
 
-The runner writes artifacts under `/tmp/enji-agent-tests/<run-id>/` and validates
-the generated files instead of relying only on the agent's final answer:
+The live runner writes artifacts under `/tmp/enji-agent-tests/<run-id>/` and
+validates the generated files instead of relying only on the agent's final
+answer. Live tests require installed agent CLIs, local auth/config, network
+access, and current target-site behavior:
 
 - `enji.ai` must complete through the normal `agent-browser` path with
   `status=ok`.
