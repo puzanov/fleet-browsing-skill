@@ -1,7 +1,9 @@
 # Enji Fleet Browser
 
-`enji-fleet-browser` is a Codex skill for user-like public website inspection.
-It uses `agent-browser` by default, records evidence to files, and falls back to
+`enji-fleet-browser` is an agent skill for user-like public website inspection.
+It is packaged as a plain skill folder so it can be loaded by Codex, Kimi,
+opencode, or any agent runtime that can read local skill instructions. The skill
+uses `agent-browser` by default, records evidence to files, and falls back to
 Obscura only after clear bot-protection or challenge-page signals. Every Obscura
 web command issued by the bundled helper is logged and must run with
 `--stealth`.
@@ -21,8 +23,8 @@ web command issued by the bundled helper is logged and must run with
 
 ```text
 enji-fleet-browser/
-  SKILL.md                         # Skill instructions loaded by Codex
-  agents/openai.yaml               # Skill UI metadata
+  SKILL.md                         # Agent skill instructions
+  agents/openai.yaml               # OpenAI/Codex UI metadata
   references/                      # Detailed browser, reporting, fallback docs
   scripts/enji-fetch.sh            # One-page capture helper
   scripts/ensure-agent-browser.sh  # Resolver/downloader for agent-browser
@@ -34,16 +36,40 @@ tests/
 
 ## Install Locally
 
-Clone the repository and symlink the skill into your Codex skills directory:
+Clone the repository:
 
 ```bash
 git clone https://github.com/puzanov/fleet-browsing-skill.git
 cd fleet-browsing-skill
+```
+
+For Codex, symlink the skill into `CODEX_HOME`:
+
+```bash
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
 ln -s "$PWD/enji-fleet-browser" "${CODEX_HOME:-$HOME/.codex}/skills/enji-fleet-browser"
 ```
 
-Then ask Codex to use it explicitly:
+For Kimi CLI, point `--skills-dir` at this repository or another directory that
+contains the `enji-fleet-browser/` skill folder:
+
+```bash
+kimi-cli --work-dir "$PWD" --skills-dir "$PWD" -p 'Use $enji-fleet-browser to inspect https://example.com and save evidence.'
+```
+
+For opencode, symlink the skill into the project-local agent skills directory:
+
+```bash
+mkdir -p .agents/skills
+ln -s "$PWD/enji-fleet-browser" .agents/skills/enji-fleet-browser
+opencode run 'Use $enji-fleet-browser to inspect https://example.com and save evidence.' --dir "$PWD"
+```
+
+For other agent runtimes, expose `enji-fleet-browser/SKILL.md` plus its
+`references/` and `scripts/` directories as a local skill named
+`enji-fleet-browser`.
+
+Then ask the agent to use it explicitly:
 
 ```text
 Use $enji-fleet-browser to inspect https://example.com and save evidence.

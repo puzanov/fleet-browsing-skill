@@ -1,8 +1,7 @@
 [project]
 name = "fleet-browsing-skill"
 version = "0.1.0"
-description = "Codex skill for user-like website inspection with stealth fallback."
+description = "Agent skill for user-like website inspection with stealth fallback."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
-
