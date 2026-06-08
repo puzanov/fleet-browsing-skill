@@ -1,0 +1,7 @@
+interface:
+  display_name: "Enji Fleet Browser"
+  short_description: "Fleet web parsing with stealth fallback"
+  default_prompt: "Use $enji-fleet-browser to investigate a website like a user, extract evidence, and fall back to stealth only if bot protection blocks the normal browser."
+
+policy:
+  allow_implicit_invocation: true
