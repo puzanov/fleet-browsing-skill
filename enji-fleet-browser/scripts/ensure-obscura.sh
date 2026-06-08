@@ -95,13 +95,42 @@ download_obscura() {
   local download_dir="$cache_root/downloads"
   local extract_dir="$cache_root/extract"
   local bin_dir="$cache_root/bin"
-  local asset archive found target worker
+  local asset archive found target worker lock_dir waited
 
   asset="$(detect_asset)"
   archive="$download_dir/$asset"
   target="$bin_dir/obscura"
 
   mkdir -p "$download_dir" "$extract_dir" "$bin_dir"
+  lock_dir="$cache_root/.download.lock"
+  waited=0
+
+  while ! mkdir "$lock_dir" 2>/dev/null; do
+    if [ -x "$target" ]; then
+      "$target" --version >&2
+      printf "%s\n" "$target"
+      return 0
+    fi
+    if [ "$waited" -ge 180 ]; then
+      echo "Timed out waiting for Obscura download lock: $lock_dir" >&2
+      return 1
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+
+  cleanup_lock() {
+    rmdir "$lock_dir" 2>/dev/null || true
+  }
+  trap cleanup_lock EXIT
+
+  if [ -x "$target" ]; then
+    "$target" --version >&2
+    cleanup_lock
+    trap - EXIT
+    printf "%s\n" "$target"
+    return 0
+  fi
 
   echo "Obscura not found; downloading $asset from $repo latest release" >&2
   if command -v gh >/dev/null 2>&1; then
@@ -144,6 +173,8 @@ download_obscura() {
   fi
 
   "$target" --version >&2
+  cleanup_lock
+  trap - EXIT
   printf "%s\n" "$target"
 }
 
