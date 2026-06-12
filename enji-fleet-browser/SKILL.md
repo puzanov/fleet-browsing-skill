@@ -27,6 +27,16 @@ This skill is self-contained. Do not load sibling `agent-browser/` or `obscura-s
 5. Do not bypass authentication, paywalls, interactive CAPTCHAs, or user-consent gates. If credentials are needed, ask for a file-based cookie/auth state path rather than pasting secrets into commands.
 6. Preserve evidence to files for anything substantial. Prefer concise summaries in chat and link the saved artifacts.
 
+## Required Block Gate
+
+Run a block gate after every initial page load and after every page-changing navigation, including external links opened during user testing:
+
+1. Save normal-browser evidence first: title, final URL, snapshot, body text or HTML, and screenshot when relevant.
+2. Scan that evidence for the block signals below.
+3. If any signal appears, stop normal-path tuning for that URL. Do not keep waiting, changing selectors, scrolling, or treating the challenge page as target content.
+4. Load `references/obscura-stealth-fallback.md` and fetch the same URL with Obscura in `--stealth` mode.
+5. If Obscura also returns a challenge, record the page as blocked and list it as a collection limitation. For third-party destinations, do not report the target site itself as broken unless user-visible evidence from the target site proves that claim.
+
 ## Core Workflow
 
 1. Create a task-local evidence directory:
@@ -51,7 +61,7 @@ This skill is self-contained. Do not load sibling `agent-browser/` or `obscura-s
 4. Extract data from the rendered DOM with `get text`, `get html`, or `eval --stdin`. Save large output to files.
 5. For visual/media claims, warm lazy-loaded content first: scroll through the page in viewport-sized steps, wait briefly, interact with relevant tabs/carousels/accordions, then capture screenshot/HTML/eval evidence. A `src` such as `/nuxt-lazy-load-fallback.svg`, a `data-src` value, `complete=false`, or `naturalWidth=0` on an offscreen/hidden/inactive image is inconclusive, not a broken-image finding.
 6. Record enough evidence for the task: screenshots for visual claims, HTML/text/JSON for extracted facts, network/HAR only when it is necessary and safe.
-7. Check for bot-block signals. If blocked, load `references/obscura-stealth-fallback.md` and run only stealth Obscura commands.
+7. Apply the Required Block Gate. If blocked, load `references/obscura-stealth-fallback.md` and run only stealth Obscura commands.
 8. Close sessions when done:
 
    ```bash

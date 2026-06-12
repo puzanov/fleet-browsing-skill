@@ -64,7 +64,14 @@ Mark a page as `blocked` only when evidence shows a challenge or automation bloc
 - HTTP-like block text such as 403/429/Forbidden inside the rendered page or command output.
 - Expected public content is replaced by a generic interstitial or empty shell.
 
-When blocked, save the normal `agent-browser` evidence first, then switch to `references/obscura-stealth-fallback.md`.
+When blocked, save the normal `agent-browser` evidence first, then switch to
+`references/obscura-stealth-fallback.md`. Do not keep probing the blocked page
+with the normal browser path after a block signal is visible.
+
+If the stealth fallback also shows a challenge, report the page as blocked and
+include both evidence paths. Treat that as a collection limitation. For
+third-party destinations, do not turn the automation block into a target-site UX
+finding unless the target site's own rendered evidence proves the issue.
 
 ## Report Shape
 
