@@ -49,6 +49,13 @@ Act like a realistic user with a goal:
 4. Capture screenshots at decision points, not every tiny step.
 5. Separate facts from interpretation. A missing button, disabled form, or visible error is a fact; "confusing" or "high friction" is an assessment supported by facts.
 
+For image and media findings, test the state a user can actually see:
+
+- Scroll through the page before taking a full-page screenshot because browser full-page screenshots do not necessarily trigger lazy-load observers.
+- Open each relevant tab, carousel slide, accordion, or modal before judging media inside it.
+- Treat hidden/offscreen lazy placeholders (`/nuxt-lazy-load-fallback.svg`, `data-src`, `complete=false`, or `naturalWidth=0`) as inconclusive unless the element is visible after user-like scrolling/interaction and a short wait.
+- Report a broken image only when the visible state still shows a placeholder/blank image or the actual media URL fails, and cite the screenshot plus the image audit/DOM evidence.
+
 ## Block Classification
 
 Mark a page as `blocked` only when evidence shows a challenge or automation block:

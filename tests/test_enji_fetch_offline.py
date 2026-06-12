@@ -54,10 +54,28 @@ class EnjiFetchOfflineTests(unittest.TestCase):
         self.assertEqual((out / "title.txt").read_text().strip(), "Enji Mock Page")
         self.assertTrue((out / "page.png").exists())
         self.assertTrue((out / "commands.log").exists())
+        self.assertTrue((out / "images-before-scroll.json").exists())
+        self.assertTrue((out / "media-warmup.json").exists())
+        self.assertTrue((out / "images-after-scroll.json").exists())
         self.assertFalse((out / "obscura-bin.txt").exists())
 
         commands = (out / "commands.log").read_text()
         self.assertIn("agent-browser", commands)
+        self.assertIn("lazy-media-warmup", commands)
+        self.assertNotRegex(commands, OBSCURA_WEB_RE)
+
+    def test_normal_path_skips_media_warmup_without_lazy_cues(self) -> None:
+        out = self.run_capture("https://plain.test", "plain")
+
+        self.assertEqual((out / "status.txt").read_text().strip(), "ok")
+        self.assertTrue((out / "images-before-scroll.json").exists())
+        self.assertTrue((out / "images-after-scroll.json").exists())
+        self.assertFalse((out / "media-warmup.json").exists())
+        self.assertIn("no lazy-loaded media cues", (out / "media-warmup-skipped.txt").read_text())
+
+        commands = (out / "commands.log").read_text()
+        self.assertIn("image-audit", commands)
+        self.assertNotIn("lazy-media-warmup", commands)
         self.assertNotRegex(commands, OBSCURA_WEB_RE)
 
     def test_blocked_path_uses_obscura_with_stealth_only(self) -> None:
@@ -68,6 +86,8 @@ class EnjiFetchOfflineTests(unittest.TestCase):
         self.assertTrue((out / "obscura-bin.txt").exists())
         self.assertTrue((out / "obscura-stealth.md").exists())
         self.assertTrue((out / "obscura-stealth.html").exists())
+        self.assertTrue((out / "media-warmup-skipped.txt").exists())
+        self.assertFalse((out / "images-after-scroll.json").exists())
 
         commands = (out / "commands.log").read_text().splitlines()
         obscura_lines = [line for line in commands if OBSCURA_WEB_RE.search(line)]
@@ -77,4 +97,3 @@ class EnjiFetchOfflineTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

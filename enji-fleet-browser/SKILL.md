@@ -49,9 +49,10 @@ This skill is self-contained. Do not load sibling `agent-browser/` or `obscura-s
 
 3. Interact like a user. Use `snapshot -i` refs, click/fill/select/scroll, then re-snapshot after every page-changing action because refs become stale.
 4. Extract data from the rendered DOM with `get text`, `get html`, or `eval --stdin`. Save large output to files.
-5. Record enough evidence for the task: screenshots for visual claims, HTML/text/JSON for extracted facts, network/HAR only when it is necessary and safe.
-6. Check for bot-block signals. If blocked, load `references/obscura-stealth-fallback.md` and run only stealth Obscura commands.
-7. Close sessions when done:
+5. For visual/media claims, warm lazy-loaded content first: scroll through the page in viewport-sized steps, wait briefly, interact with relevant tabs/carousels/accordions, then capture screenshot/HTML/eval evidence. A `src` such as `/nuxt-lazy-load-fallback.svg`, a `data-src` value, `complete=false`, or `naturalWidth=0` on an offscreen/hidden/inactive image is inconclusive, not a broken-image finding.
+6. Record enough evidence for the task: screenshots for visual claims, HTML/text/JSON for extracted facts, network/HAR only when it is necessary and safe.
+7. Check for bot-block signals. If blocked, load `references/obscura-stealth-fallback.md` and run only stealth Obscura commands.
+8. Close sessions when done:
 
    ```bash
    "$AB" --session enji close
@@ -62,6 +63,11 @@ For simple one-page capture, use the bundled helper:
 ```bash
 "$SKILL_DIR/scripts/enji-fetch.sh" "https://example.com" "$OUT"
 ```
+
+The helper saves `images-before-scroll.json` and `images-after-scroll.json`.
+When the first audit finds lazy-media cues, it also performs warm-up and writes
+`media-warmup.json`; otherwise it skips the extra scroll pass. Use those files
+to distinguish real visible image failures from normal lazy-loading placeholders.
 
 ## What To Read Next
 

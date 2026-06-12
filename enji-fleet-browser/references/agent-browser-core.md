@@ -118,6 +118,66 @@ Save raw evidence:
 "$AB" snapshot -i -u > "$OUT/snapshot.txt"
 ```
 
+## Lazy-Loaded Media
+
+Before claiming images are broken, warm the page as a user would. Full-page
+screenshots can capture offscreen placeholders without triggering
+IntersectionObserver/lazy-load code.
+
+```bash
+cat <<'JS' | "$AB" eval --stdin > "$OUT/media-warmup.json"
+(async () => {
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const root = document.scrollingElement || document.documentElement;
+  const previousScrollBehavior = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = "auto";
+  const max = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+  const step = Math.max(450, Math.floor(innerHeight * 0.8));
+  for (let y = 0; y <= max; y += step) {
+    scrollTo(0, y);
+    root.scrollTop = y;
+    dispatchEvent(new Event("scroll"));
+    await sleep(250);
+  }
+  scrollTo(0, 0);
+  root.scrollTop = 0;
+  await sleep(500);
+  document.documentElement.style.scrollBehavior = previousScrollBehavior;
+  return { imageCount: document.images.length, documentHeight: max };
+})()
+JS
+```
+
+Audit only visible/rendered image states for broken-image claims:
+
+```bash
+cat <<'JS' | "$AB" eval --stdin > "$OUT/image-audit.json"
+(() => Array.from(document.images).map((img) => {
+  const rect = img.getBoundingClientRect();
+  const style = getComputedStyle(img);
+  const src = img.currentSrc || img.src || "";
+  return {
+    alt: img.alt || "",
+    src,
+    dataSrc: img.getAttribute("data-src") || "",
+    visible: style.display !== "none" && style.visibility !== "hidden" &&
+      rect.width > 0 && rect.height > 0 &&
+      rect.bottom >= 0 && rect.top <= innerHeight,
+    fallbackSrc: /(^|\/)nuxt-lazy-load-fallback\.svg([?#]|$)/.test(src),
+    lazyCue: Boolean(img.getAttribute("data-src")) ||
+      img.getAttribute("loading") === "lazy" ||
+      /\blazy(load|loaded|loading)?\b/i.test(typeof img.className === "string" ? img.className : ""),
+    naturalWidth: img.naturalWidth,
+    complete: img.complete
+  };
+}))()
+JS
+```
+
+Do not report hidden/offscreen lazy placeholders or inactive tab-panel images as
+broken. First scroll them into view or open the user-visible state, wait briefly,
+then cite the screenshot and audit output.
+
 ## Screenshots, PDF, HAR, Downloads
 
 ```bash

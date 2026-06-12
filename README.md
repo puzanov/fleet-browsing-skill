@@ -91,6 +91,8 @@ The helper writes files such as:
 - `title.txt` and `final-url.txt`
 - `snapshot.txt`, `body.txt`, and `body.html`
 - `page.png`
+- `images-before-scroll.json`, optional `media-warmup.json`, and
+  `images-after-scroll.json` for lazy-loaded media checks
 - `commands.log`
 - `obscura-stealth.md` and `obscura-stealth.html` when fallback was needed
 
