@@ -35,7 +35,8 @@ Run a block gate after every initial page load and after every page-changing nav
 2. Scan that evidence for the block signals below.
 3. If any signal appears, stop normal-path tuning for that URL. Do not keep waiting, changing selectors, scrolling, or treating the challenge page as target content.
 4. Load `references/obscura-stealth-fallback.md` and fetch the same URL with Obscura in `--stealth` mode.
-5. If Obscura also returns a challenge, record the page as blocked and list it as a collection limitation. For third-party destinations, do not report the target site itself as broken unless user-visible evidence from the target site proves that claim.
+5. If Obscura returns a transitional challenge such as `Verification successful. Waiting for ...`, make at most one longer stealth retry as described in the fallback reference.
+6. If Obscura still returns a challenge after that retry, record the page as blocked and list it as a collection limitation. For third-party destinations, do not report the target site itself as broken unless user-visible evidence from the target site proves that claim.
 
 ## Core Workflow
 

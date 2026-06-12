@@ -26,6 +26,27 @@ Allowed web commands must look like these:
 
 Do not run `obscura fetch`, `obscura scrape`, or raw download commands against a target URL without `--stealth`.
 
+## One Extended Challenge Retry
+
+If the first stealth fetch returns a Cloudflare transition page that says
+`Verification successful. Waiting for ...`, make at most one retry for the same
+URL with a longer timeout. This handles slow post-verification redirects without
+creating an infinite challenge loop.
+
+Save the retry output separately:
+
+```bash
+"$OBSCURA" fetch "https://target.example" --stealth --dump markdown --quiet \
+  --wait-until networkidle0 --timeout 120 --output "$OUT/obscura-stealth-retry.md"
+
+"$OBSCURA" fetch "https://target.example" --stealth --dump html --quiet \
+  --wait-until networkidle0 --timeout 120 --output "$OUT/obscura-stealth-retry.html"
+```
+
+Do not make a second retry. If the retry still contains challenge text such as
+`Cloudflare`, `Just a moment`, `captcha`, `verify you are human`, or `Waiting
+for`, report the page as blocked and continue with the rest of the task.
+
 ## Resolve Or Download Obscura
 
 The resolver checks `ENJI_OBSCURA_BIN`, then `command -v obscura`, then `/tmp/enji-fleet-browser/obscura`. If missing, it downloads the latest prebuilt `h4ckf0r0day/obscura` release with `gh` or `curl`.
